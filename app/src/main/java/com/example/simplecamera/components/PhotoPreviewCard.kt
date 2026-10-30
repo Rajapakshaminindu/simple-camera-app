@@ -1,15 +1,12 @@
 package com.example.simplecamera.components
 
 import android.graphics.Bitmap
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.scaleIn
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -81,13 +78,8 @@ fun PhotoPreviewCard(
             contentAlignment = Alignment.Center
         ) {
             if (photoBitmap != null) {
-                // Display Captured Photo with smooth entrance
-                AnimatedVisibility(
-                    visible = true,
-                    enter = fadeIn(tween(300)) + scaleIn(tween(350, easing = FastOutSlowInEasing))
-                ) {
-                    Box(modifier = Modifier.fillMaxSize()) {
-                        Image(
+                Box(modifier = Modifier.fillMaxSize()) {
+                    Image(
                             bitmap = photoBitmap.asImageBitmap(),
                             contentDescription = "Captured Photograph",
                             contentScale = ContentScale.Crop,
@@ -163,7 +155,6 @@ fun PhotoPreviewCard(
                             }
                         }
                     }
-                }
             } else {
                 // Empty State with animated camera pulse
                 val infiniteTransition = rememberInfiniteTransition(label = "pulse")
