@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<paths xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Grants temporary read access to cache directory for camera capture and sharing -->
+    <cache-path
+        name="shared_cache_images"
+        path="." />
+
+    <!-- Grants access to app-specific external files (e.g. Pictures folder) -->
+    <external-files-path
+        name="shared_external_images"
+        path="Pictures" />
+
+    <external-cache-path
+        name="shared_external_cache"
+        path="." />
+</paths>
