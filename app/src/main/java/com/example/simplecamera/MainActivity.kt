@@ -51,6 +51,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -113,11 +114,24 @@ fun CameraAppScreen(modifier: Modifier = Modifier) {
     val scrollState = rememberScrollState()
 
     // -------------------------------------------------------------
-    // Application State
+    // Application State (survives screen rotation via rememberSaveable)
     // -------------------------------------------------------------
-    var photoUri by remember { mutableStateOf<Uri?>(null) }
+    var photoUriString by rememberSaveable { mutableStateOf<String?>(null) }
+    var pendingCameraUriString by rememberSaveable { mutableStateOf<String?>(null) }
     var photoBitmap by remember { mutableStateOf<Bitmap?>(null) }
-    var pendingCameraUri by remember { mutableStateOf<Uri?>(null) }
+
+    val photoUri = photoUriString?.let { Uri.parse(it) }
+    val pendingCameraUri = pendingCameraUriString?.let { Uri.parse(it) }
+
+    // Reload bitmap whenever photoUriString changes or on screen rotation
+    LaunchedEffect(photoUriString) {
+        val uri = photoUri
+        if (uri != null) {
+            photoBitmap = CameraUtils.loadRotatedBitmap(context, uri)
+        } else {
+            photoBitmap = null
+        }
+    }
 
     // Permission tracking state
     var hasCameraPermission by remember {
@@ -134,6 +148,28 @@ fun CameraAppScreen(modifier: Modifier = Modifier) {
     // Activity Result Launchers (Compose-native Intent Contracts)
     // -------------------------------------------------------------
 
+    // 2. Camera Capture Launcher (Takes picture and saves to FileProvider URI)
+    val takePictureLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.TakePicture()
+    ) { success ->
+        val currentPendingUri = pendingCameraUri
+        if (success && currentPendingUri != null) {
+            photoUriString = currentPendingUri.toString()
+            pendingCameraUriString = null
+            Toast.makeText(context, "Photo captured successfully! 📸", Toast.LENGTH_SHORT).show()
+        } else {
+            pendingCameraUriString = null
+            Toast.makeText(context, "Camera capture cancelled", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    // Helper to start picture taking with a new FileProvider URI
+    fun startCameraCapture() {
+        val newUri = CameraUtils.createImageFileUri(context)
+        pendingCameraUriString = newUri.toString()
+        takePictureLauncher.launch(newUri)
+    }
+
     // 1. Camera Permission Request Launcher
     val permissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
@@ -142,23 +178,10 @@ fun CameraAppScreen(modifier: Modifier = Modifier) {
         if (isGranted) {
             permissionDeniedMessage = null
             Toast.makeText(context, "Camera permission granted! ✅", Toast.LENGTH_SHORT).show()
+            startCameraCapture()
         } else {
             permissionDeniedMessage = "Camera permission is required to capture photos."
             Toast.makeText(context, "Camera permission denied ❌", Toast.LENGTH_SHORT).show()
-        }
-    }
-
-    // 2. Camera Capture Launcher (Takes picture and saves to FileProvider URI)
-    val takePictureLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.TakePicture()
-    ) { success ->
-        if (success && pendingCameraUri != null) {
-            photoUri = pendingCameraUri
-            // Load and correct EXIF orientation so preview matches reality
-            photoBitmap = CameraUtils.loadRotatedBitmap(context, pendingCameraUri!!)
-            Toast.makeText(context, "Photo captured successfully! 📸", Toast.LENGTH_SHORT).show()
-        } else {
-            Toast.makeText(context, "Camera capture cancelled", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -166,11 +189,9 @@ fun CameraAppScreen(modifier: Modifier = Modifier) {
     fun launchCameraFlow() {
         if (!hasCameraPermission) {
             permissionLauncher.launch(Manifest.permission.CAMERA)
-            return
+        } else {
+            startCameraCapture()
         }
-        val newUri = CameraUtils.createImageFileUri(context)
-        pendingCameraUri = newUri
-        takePictureLauncher.launch(newUri)
     }
 
     // -------------------------------------------------------------
@@ -312,9 +333,8 @@ fun CameraAppScreen(modifier: Modifier = Modifier) {
             PhotoPreviewCard(
                 photoBitmap = photoBitmap,
                 onClearPhoto = {
-                    photoUri = null
-                    photoBitmap = null
-                    pendingCameraUri = null
+                    photoUriString = null
+                    pendingCameraUriString = null
                     Toast.makeText(context, "Photo cleared", Toast.LENGTH_SHORT).show()
                 }
             )
