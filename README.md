@@ -26,7 +26,7 @@ This repository contains the completed project for the **Mobile Application Deve
 
 ---
 
-## 🧭 Architecture & Intent Flow
+## 🧭 <<Architecture & Intent Flow>>
 
 ```mermaid
 sequenceDiagram
