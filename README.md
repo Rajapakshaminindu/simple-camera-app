@@ -224,13 +224,6 @@ simple-camera-app/
 
 ---
 
-## 👤 Author
-
-**Minindu Rajapaksha**
-- GitHub: [@Rajapakshaminindu](https://github.com/Rajapakshaminindu)
-- Repository: [simple-camera-app](https://github.com/Rajapakshaminindu/simple-camera-app)
-
----
 
 <div align="center">
 
