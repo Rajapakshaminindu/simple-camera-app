@@ -12,8 +12,7 @@
 </div>
 
 ---
-
-## 📖 Overview
+ 📖 Overview
 
 This repository contains the completed project for the **Mobile Application Development** module assignment. The objective of this project is to build a camera and sharing application utilizing modern Android architecture and Jetpack Compose.
 
@@ -26,7 +25,7 @@ This repository contains the completed project for the **Mobile Application Deve
 
 ---
 
-## 🧭 Architecture & Intent Flow
+ 🧭 Architecture & Intent Flow
 
 ```mermaid
 sequenceDiagram
